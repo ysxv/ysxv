@@ -1,0 +1,25 @@
+library(ForestGapR)
+library(raster)
+library(lidR)
+setwd('D:\\...')
+data <- lidR::readLAS('D:\\XXX.las')
+summary(data)
+#1.creat or import CHM
+chm <- grid_canopy(data49, res = 1, pitfree(thresholds = c(0, 10, 20), max_edge = c(0, 1.5)))
+plot(chm)
+#2.detect gap
+gap <- getForestGaps(chm_layer = chm, threshold=10, size=c(1,10^4))
+plot(gap49 , col ="forestgreen")
+#3.computes a series of forest canopy gap statistics
+gapsta <- GapStats(gap_layer = gap49, chm_layer = chm)
+#4. calculate GSFD by two different ways(optional)
+gsfd <- GapSizeFDist(gaps_stats = gapsta , method = 'Asner_2013', col = "forestgreen", axes = 'TRUE', ylab = 'Gap Frequency', xlab = as.expression(bquote('Gap Size' ~ (m^2))))
+gsfd2 <- GapSizeFDist(gaps_stats = gapsta , method = 'Hanel_2017', col = "forestgreen", axes = 'TRUE', ylab = 'Gap Frequency', xlab = as.expression(bquote('Gap Size' ~ (m^2))))
+#5. 
+gaps_spdf <- GapSPDF(gap_layer = gap)
+plot(chm)
+plot(gaps_spdf , add = TRUE, border = 'red', lwd = 2)
+gaps_spdf <- merge(gaps_spdf,gapsta,by='gap_id')
+head(gaps_spdf@data)
+plot(gaps_spdf, add = TRUE)
+write.csv(gapsta, fileEncoding = 'UTF-8',file = 'Gapstats attribute.csv')
